@@ -1,0 +1,24 @@
+{
+  "name": "valinor-animation",
+  "version": "1.0.0",
+  "description": "A beautiful animation featuring three SVG icons with TypeScript",
+  "main": "dist/animation.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "npm run build && python3 server.py",
+    "start": "python3 server.py"
+  },
+  "keywords": [
+    "animation",
+    "typescript",
+    "svg",
+    "css",
+    "web"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+} 

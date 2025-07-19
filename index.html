@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valinor Animation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000000;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 120px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .animation-container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .web-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .hexagon-group {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            display: block;
+            transform-origin: center;
+            /* Center the hexagon group in the container */
+            transform: translate(-50%, -50%);
+            left: 50%;
+            top: 50%;
+            z-index: 1;
+        }
+
+        .icon {
+            position: absolute;
+            width: 171px;
+            height: 171px;
+            transform-origin: center;
+            transition: transform 1s ease-in-out;
+        }
+        
+        /* During orbital motion, position icons absolutely in container */
+        .rotating .icon {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        /* Icons will be positioned by JavaScript for orbital motion */
+        .rotating .icon {
+            transition: none;
+        }
+
+        .icon svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+            display: block;
+            /* Ensure SVG is centered within the icon container */
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+
+
+
+        
+
+
+
+        
+
+        
+
+        
+        /* JavaScript handles all orbital animations */
+
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        .controls button {
+            background: rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            color: #374151;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .controls button:hover {
+            background: rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+        .controls button:active {
+            transform: translateY(0);
+        }
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.1);
+            color: #374151;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+
+        /* Computer Animation Styles */
+        .computer-container {
+            position: relative;
+            width: 520px;
+            height: 366px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .computer-top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 48px;
+            background: rgba(31, 41, 55, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        .computer-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #9ca3af;
+        }
+
+        .computer-screen {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 318px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .computer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .computer-content.detecting {
+            color: #22d3ee;
+        }
+
+        .computer-content.running {
+            color: #10b981;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow: hidden;
+        }
+
+        .computer-content.completed {
+            color: #10b981;
+        }
+
+        .computer-content.idle {
+            color: #6b7280;
+        }
+
+        .computer-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .computer-text {
+            margin-top: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .computer-code-line {
+            white-space: nowrap;
+            margin-bottom: 4px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+        }
+
+        .computer-code-line.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .computer-loading {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            color: #22d3ee;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .computer-loading.visible {
+            opacity: 1;
+        }
+
+        .computer-spinner {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .computer-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .computer-icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .computer-icon-container svg {
+            width: 171px;
+            height: 171px;
+        }
+
+        .computer-icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .computer-icon-wrapper .icon {
+            position: relative !important;
+            transform: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .computer-icon-wrapper .icon svg {
+            width: 171px !important;
+            height: 171px !important;
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            transform: none !important;
+            viewBox: 0 0 300 300 !important;
+        }
+
+        .computer-progress-container {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .computer-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .computer-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22d3ee, #10b981);
+            border-radius: 2px;
+            transition: width 0.1s ease;
+        }
+
+        .computer-progress-text {
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .computer-checkmark {
+            filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.8));
+            animation: checkmark-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes checkmark-glow {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.8)); }
+            50% { filter: drop-shadow(0 0 30px rgba(34, 211, 238, 1)); }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button id="startBtn">Start Animation</button>
+        <button id="resetBtn">Reset</button>
+    </div>
+    <div class="status" id="status">Ready</div>
+    <div class="main-container">
+        <div class="animation-container" id="container">
+            <!-- Canvas for web lines -->
+            <canvas id="webCanvas" class="web-canvas"></canvas>
+        
+        <!-- Hexagon group for ferris wheel effect -->
+        <div class="hexagon-group" id="hexagonGroup">
+            <div class="icon" id="icon1">
+                <!-- SVG 1 replaced -->
+                <svg width="171" height="171" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(0.95) translate(8, 8)">
+<g filter="url(#filter0_f_1_97)">
+<path d="M174.67 255.198H109.436C98.1055 255.198 88.9241 246.016 88.9241 234.686V148.387C88.9241 143.646 90.5676 139.063 93.5543 135.397L126.171 95.5261C134.373 85.4913 149.718 85.4913 157.919 95.5261L190.536 135.397C193.539 139.063 195.167 143.646 195.167 148.387V234.686C195.167 246.016 185.985 255.198 174.654 255.198H174.67Z" fill="url(#paint0_linear_1_97)"/>
+</g>
+<path d="M174.67 255.198H109.436C98.1056 255.198 88.9241 246.016 88.9241 234.686V148.387C88.9241 143.646 90.5676 139.063 93.5544 135.397L126.171 95.5261C134.373 85.4913 149.718 85.4913 157.919 95.5261L190.536 135.397C193.539 139.063 195.167 143.646 195.167 148.387V234.686C195.167 246.016 185.985 255.198 174.654 255.198H174.67Z" fill="url(#paint1_linear_1_97)"/>
+<foreignObject x="7" y="70.0219" width="178.969" height="200.333"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(9px);clip-path:url(#bgblur_0_1_97_clip_path);height:100%;width:100%;border:2px solid #0066FF;border-radius:8px;"></div></foreignObject><path data-figma-bg-blur-radius="18" d="M136.347 89.9222C147.932 86.2972 159.913 94.0182 161.503 105.962L161.57 106.534L166.766 156.663H166.75L166.864 157.767C167.33 162.247 166.232 166.756 163.753 170.513V170.514L116.281 242.575V242.576C110.359 251.579 98.2578 254.06 89.252 248.136H89.251L34.7803 212.248L34.3623 211.966C25.8386 206.044 23.4627 194.46 28.9473 185.644L29.2188 185.22L76.7051 113.159C79.1865 109.399 82.8858 106.605 87.1826 105.268L87.1836 105.267L136.346 89.9232L136.347 89.9222ZM149.715 97.0775C142.443 92.2857 132.673 94.2937 127.881 101.566C123.089 108.838 125.097 118.608 132.369 123.4C139.641 128.192 149.411 126.184 154.203 118.911C158.995 111.639 156.987 101.869 149.715 97.0775Z" fill="url(#paint2_linear_1_97)" stroke="url(#paint3_linear_1_97)" stroke-width="2"/>
+</g>
+<defs>
+<filter id="filter0_f_1_97" x="0.924103" y="0" width="282.242" height="343.198" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="44" result="effect1_foregroundBlur_1_97"/>
+</filter>
+<clipPath id="bgblur_0_1_97_clip_path" transform="translate(-7 -70.0219)"><path d="M136.347 89.9222C147.932 86.2972 159.913 94.0182 161.503 105.962L161.57 106.534L166.766 156.663H166.75L166.864 157.767C167.33 162.247 166.232 166.756 163.753 170.513V170.514L116.281 242.575V242.576C110.359 251.579 98.2578 254.06 89.252 248.136H89.251L34.7803 212.248L34.3623 211.966C25.8386 206.044 23.4627 194.46 28.9473 185.644L29.2188 185.22L76.7051 113.159C79.1865 109.399 82.8858 106.605 87.1826 105.268L87.1836 105.267L136.346 89.9232L136.347 89.9222ZM149.715 97.0775C142.443 92.2857 132.673 94.2937 127.881 101.566C123.089 108.838 125.097 118.608 132.369 123.4C139.641 128.192 149.411 126.184 154.203 118.911C158.995 111.639 156.987 101.869 149.715 97.0775Z"/>
+</clipPath><linearGradient id="paint0_linear_1_97" x1="142.053" y1="261.93" x2="142.053" y2="95.6051" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FF5C00"/>
+<stop offset="0.52" stop-color="#FFCA40"/>
+<stop offset="1" stop-color="#FFE0F9"/>
+</linearGradient>
+<linearGradient id="paint1_linear_1_97" x1="142.053" y1="261.93" x2="142.053" y2="95.6051" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FF5C00"/>
+<stop offset="0.52" stop-color="#FFCA40"/>
+<stop offset="1" stop-color="#FFE0F9"/>
+</linearGradient>
+<linearGradient id="paint2_linear_1_97" x1="33.0714" y1="243.078" x2="177.447" y2="117.471" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0.2"/>
+<stop offset="1" stop-color="white" stop-opacity="0.49"/>
+</linearGradient>
+<linearGradient id="paint3_linear_1_97" x1="35.092" y1="100.946" x2="172.408" y2="228.681" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>
+            </div>
+            <div class="icon" id="icon2">
+                <!-- SVG 2: New gradient bubble icon -->
+                <svg width="171" height="171" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(1.06) translate(9, 9)">
+<g filter="url(#filter0_f_1_10)">
+<path d="M142.561 88.7006C170.44 89.599 192.948 112.562 193.227 140.348C193.319 150.522 190.494 160.022 185.534 168.095C184.831 169.231 184.698 170.618 185.123 171.873L189.99 186.407C191.661 191.415 186.674 196.079 181.767 194.097L166.74 188.019C165.573 187.544 164.26 187.557 163.132 188.085C156.434 191.23 148.967 193.014 141.089 193.04C112.851 193.172 89.3093 170.539 88.487 142.423C87.5983 112.311 112.334 87.7228 142.574 88.6874L142.561 88.7006Z" fill="url(#paint0_linear_1_10)"/>
+</g>
+<path d="M142.561 88.7007C170.44 89.5992 192.948 112.562 193.227 140.348C193.319 150.522 190.494 160.022 185.534 168.095C184.831 169.231 184.698 170.618 185.123 171.874L189.99 186.407C191.661 191.415 186.674 196.079 181.767 194.097L166.74 188.019C165.573 187.544 164.26 187.557 163.132 188.085C156.434 191.23 148.967 193.014 141.089 193.04C112.851 193.172 89.3093 170.539 88.487 142.423C87.5983 112.311 112.334 87.723 142.574 88.6875L142.561 88.7007Z" fill="url(#paint1_linear_1_10)"/>
+<foreignObject x="1" y="16" width="171.511" height="173.789"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(9px);clip-path:url(#bgblur_0_1_10_clip_path);height:100%;width:100%;border:2px solid #0066FF;border-radius:8px;"></div></foreignObject><path data-figma-bg-blur-radius="18" d="M84.5645 35.0361C123.098 33.7889 154.609 65.3061 153.481 103.924C152.431 139.975 122.434 168.976 86.457 168.82C76.4122 168.781 66.8994 166.495 58.3711 162.468C56.6264 161.641 54.6375 161.65 52.8994 162.353L52.8975 162.354L33.4531 170.252V170.253C27.8951 172.513 22.246 167.208 24.1484 161.499H24.1494L30.4375 142.575L30.4395 142.571C31.0644 140.661 30.8717 138.547 29.8008 136.805C23.6742 126.8 20.1015 115.052 20.002 102.467L20.0029 101.246C20.3502 65.8992 48.5836 36.6391 83.7197 35.0674L84.5508 35.0361H84.5645Z" fill="url(#paint2_linear_1_10)" stroke="url(#paint3_linear_1_10)" stroke-width="2"/>
+</g>
+<defs>
+<filter id="filter0_f_1_10" x="0.463745" y="0.659912" width="280.765" height="281.904" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="44" result="effect1_foregroundBlur_1_10"/>
+</filter>
+<clipPath id="bgblur_0_1_10_clip_path" transform="translate(-1 -16)"><path d="M84.5645 35.0361C123.098 33.7889 154.609 65.3061 153.481 103.924C152.431 139.975 122.434 168.976 86.457 168.82C76.4122 168.781 66.8994 166.495 58.3711 162.468C56.6264 161.641 54.6375 161.65 52.8994 162.353L52.8975 162.354L33.4531 170.252V170.253C27.8951 172.513 22.246 167.208 24.1484 161.499H24.1494L30.4375 142.575L30.4395 142.571C31.0644 140.661 30.8717 138.547 29.8008 136.805C23.6742 126.8 20.1015 115.052 20.002 102.467L20.0029 101.246C20.3502 65.8992 48.5836 36.6391 83.7197 35.0674L84.5508 35.0361H84.5645Z"/>
+</clipPath><linearGradient id="paint0_linear_1_10" x1="129.802" y1="92.2415" x2="153.213" y2="196.21" gradientUnits="userSpaceOnUse">
+<stop stop-color="#0BC7FF"/>
+<stop offset="1" stop-color="#DB0EFE"/>
+</linearGradient>
+<linearGradient id="paint1_linear_1_10" x1="129.802" y1="92.2416" x2="153.213" y2="196.21" gradientUnits="userSpaceOnUse">
+<stop stop-color="#0BC7FF"/>
+<stop offset="1" stop-color="#DB0EFE"/>
+</linearGradient>
+<linearGradient id="paint2_linear_1_10" x1="26.6504" y1="164.01" x2="148.864" y2="43.816" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0.2"/>
+<stop offset="1" stop-color="white" stop-opacity="0.49"/>
+</linearGradient>
+<linearGradient id="paint3_linear_1_10" x1="28.5656" y1="44.8368" x2="143.856" y2="166.072" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>
+            </div>
+            <div class="icon" id="icon3">
+                <!-- SVG 3 - Document with exact design -->
+                <svg width="171" height="171" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="scale(1.03) translate(4, 0)">
+                    <g filter="url(#filter0_f_1_164)">
+                        <path d="M157.906 88H108.615C97.5609 88 88.6075 96.9028 88.6075 107.894V217.282C88.6075 228.273 97.5609 237.176 108.615 237.176H183.614C194.668 237.176 203.621 228.273 203.621 217.282V133.457C203.621 128.182 201.509 123.122 197.764 119.387L172.056 93.8238C168.3 90.0885 163.211 88 157.906 88Z" fill="url(#paint0_linear_1_164)"/>
+                    </g>
+                    <path d="M153.351 88H104.06C93.0058 88 84.0524 96.9028 84.0524 107.894V217.282C84.0524 228.273 93.0058 237.176 104.06 237.176H179.059C190.113 237.176 199.066 228.273 199.066 217.282V133.457C199.066 128.182 196.954 123.122 193.209 119.387L167.501 93.8238C163.745 90.0885 158.656 88 153.351 88Z" fill="url(#paint1_linear_1_164)"/>
+                    <foreignObject x="40.9999" y="133.77" width="201.119" height="148.736"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(9px);clip-path:url(#bgblur_0_1_164_clip_path);height:100%;width:100%;border:2px solid #0066FF;border-radius:8px;"></div></foreignObject>
+                    <path data-figma-bg-blur-radius="18" d="M71.0527 152.77H139.752C145.857 152.77 150.804 157.7 150.804 163.763V174.358H208.475C216.569 174.358 223.119 180.883 223.119 188.925V248.939C223.119 256.981 216.569 263.506 208.475 263.506H74.6445C66.5505 263.506 59.9999 256.981 59.9999 248.939V163.763L60.0146 163.198C60.3012 157.584 64.8312 153.07 70.4833 152.785L71.0527 152.77Z" fill="url(#paint2_linear_1_164)" stroke="url(#paint3_linear_1_164)" stroke-width="2"/>
+                    </g>
+                    <defs>
+                        <filter id="filter0_f_1_164" x="0.607513" y="0" width="291.014" height="325.176" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                            <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                            <feGaussianBlur stdDeviation="44" result="effect1_foregroundBlur_1_164"/>
+                        </filter>
+                        <clipPath id="bgblur_0_1_164_clip_path" transform="translate(-40.9999 -133.77)">
+                            <path d="M71.0527 152.77H139.752C145.857 152.77 150.804 157.7 150.804 163.763V174.358H208.475C216.569 174.358 223.119 180.883 223.119 188.925V248.939C223.119 256.981 216.569 263.506 208.475 263.506H74.6445C66.5505 263.506 59.9999 256.981 59.9999 248.939V163.763L60.0146 163.198C60.3012 157.584 64.8312 153.07 70.4833 152.785L71.0527 152.77Z"/>
+                        </clipPath>
+                        <linearGradient id="paint0_linear_1_164" x1="92.4601" y1="99.039" x2="186.686" y2="234.61" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#FFDC7C"/>
+                            <stop offset="1" stop-color="#F78D1E"/>
+                        </linearGradient>
+                        <linearGradient id="paint1_linear_1_164" x1="87.905" y1="99.039" x2="182.131" y2="234.61" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#FFDC7C"/>
+                            <stop offset="1" stop-color="#F78D1E"/>
+                        </linearGradient>
+                        <linearGradient id="paint2_linear_1_164" x1="68.3218" y1="258.142" x2="161.464" y2="121.721" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="white" stop-opacity="0.2"/>
+                            <stop offset="1" stop-color="white" stop-opacity="0.49"/>
+                        </linearGradient>
+                        <linearGradient id="paint3_linear_1_164" x1="70.6555" y1="160.637" x2="156.338" y2="294.82" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="white"/>
+                            <stop offset="1" stop-color="white" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="icon" id="icon4">
+                <!-- SVG 4 - Yellow to pink gradient rectangle -->
+                <svg width="171" height="171" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(0.88) translate(18, 18)">
+<g filter="url(#filter0_f_1_108)">
+<path d="M235.437 88H107.482C97.2428 88 88.9425 96.2984 88.9425 106.535V176.652C88.9425 186.889 97.2428 195.187 107.482 195.187H235.437C245.676 195.187 253.977 186.889 253.977 176.652V106.535C253.977 96.2984 245.676 88 235.437 88Z" fill="url(#paint0_linear_1_108)"/>
+<path style="mix-blend-mode:overlay" d="M253.977 113.291H88.9425V136.174H253.977V113.291Z" fill="url(#paint1_linear_1_108)"/>
+</g>
+<path d="M235.437 88H107.482C97.2428 88 88.9425 96.2984 88.9425 106.535V176.652C88.9425 186.889 97.2428 195.187 107.482 195.187H235.437C245.676 195.187 253.977 186.889 253.977 176.652V106.535C253.977 96.2984 245.676 88 235.437 88Z" fill="url(#paint2_linear_1_108)"/>
+<path style="mix-blend-mode:overlay" d="M253.977 113.291H88.9425V136.174H253.977V113.291Z" fill="url(#paint3_linear_1_108)"/>
+<foreignObject x="55" y="127.762" width="231.865" height="122.545"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(9px);clip-path:url(#bgblur_0_1_108_clip_path);height:100%;width:100%;border:2px solid #0066FF;border-radius:8px;"></div></foreignObject><path data-figma-bg-blur-radius="18" d="M86.4219 146.762H255.443C262.303 146.763 267.865 152.326 267.865 159.189V218.88C267.865 225.744 262.303 231.307 255.443 231.307H86.4219C79.5617 231.307 74 225.744 74 218.88V159.189C74 152.326 79.5617 146.762 86.4219 146.762Z" fill="url(#paint4_linear_1_108)" stroke="url(#paint5_linear_1_108)" stroke-width="2"/>
+</g>
+<defs>
+<filter id="filter0_f_1_108" x="0.942505" y="0" width="341.034" height="283.187" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="44" result="effect1_foregroundBlur_1_108"/>
+</filter>
+<clipPath id="bgblur_0_1_108_clip_path" transform="translate(-55 -127.762)"><path d="M86.4219 146.762H255.443C262.303 146.763 267.865 152.326 267.865 159.189V218.88C267.865 225.744 262.303 231.307 255.443 231.307H86.4219C79.5617 231.307 74 225.744 74 218.88V159.189C74 152.326 79.5617 146.762 86.4219 146.762Z"/>
+</clipPath><linearGradient id="paint0_linear_1_108" x1="170.628" y1="82.6647" x2="172.23" y2="196.669" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFC200"/>
+<stop offset="1" stop-color="#F82AC6"/>
+</linearGradient>
+<linearGradient id="paint1_linear_1_108" x1="86.5212" y1="125.961" x2="259.915" y2="123.455" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0.5"/>
+<stop offset="1" stop-color="white"/>
+</linearGradient>
+<linearGradient id="paint2_linear_1_108" x1="170.628" y1="82.6647" x2="172.23" y2="196.669" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFC200"/>
+<stop offset="1" stop-color="#F82AC6"/>
+</linearGradient>
+<linearGradient id="paint3_linear_1_108" x1="86.5212" y1="125.961" x2="259.915" y2="123.455" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0.5"/>
+<stop offset="1" stop-color="white"/>
+</linearGradient>
+<linearGradient id="paint4_linear_1_108" x1="84.0577" y1="227.421" x2="140.821" y2="98.9567" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0.2"/>
+<stop offset="1" stop-color="white" stop-opacity="0.49"/>
+</linearGradient>
+<linearGradient id="paint5_linear_1_108" x1="86.8259" y1="152.569" x2="138.011" y2="276.428" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>
+            </div>
+            <div class="icon" id="icon5">
+                <!-- SVG 5 - Yellow to green to blue gradient mountain -->
+                <svg width="171" height="171" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(0.81) translate(28, 28)">
+<g filter="url(#filter0_f_1_37)">
+<path d="M278.143 169.606L245.65 123.159C240.64 115.995 230.103 115.995 225.093 123.159L204.916 152.012L164.048 93.5879C159.038 86.424 148.501 86.424 143.491 93.5879L90.3178 169.606C84.4479 177.995 90.4038 189.564 100.596 189.564H267.852C278.045 189.564 284.001 177.995 278.131 169.606H278.143Z" fill="url(#paint0_linear_1_37)"/>
+</g>
+<path d="M278.143 169.606L245.65 123.159C240.64 115.995 230.103 115.995 225.093 123.159L204.916 152.012L164.048 93.5879C159.038 86.424 148.501 86.424 143.491 93.5879L90.3178 169.606C84.4479 177.995 90.4038 189.564 100.596 189.564H267.852C278.045 189.564 284.001 177.995 278.131 169.606H278.143Z" fill="url(#paint1_linear_1_37)"/>
+<foreignObject x="132.631" y="11" width="196.564" height="196.564"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(9px);clip-path:url(#bgblur_0_1_37_clip_path);height:100%;width:100%;border:2px solid #0066FF;border-radius:8px;"></div></foreignObject><path data-figma-bg-blur-radius="18" d="M178.211 30H283.615C298.294 30 310.195 41.9004 310.195 56.5801V161.983C310.195 176.663 298.294 188.563 283.615 188.563H178.211C163.532 188.563 151.631 176.663 151.631 161.983V56.5801C151.631 41.9004 163.532 30 178.211 30Z" fill="url(#paint2_linear_1_37)" stroke="url(#paint3_linear_1_37)" stroke-width="2"/>
+<path d="M268.492 100.741C282.642 100.741 294.114 89.2699 294.114 75.1193C294.114 60.9687 282.642 49.4974 268.492 49.4974C254.341 49.4974 242.87 60.9687 242.87 75.1193C242.87 89.2699 254.341 100.741 268.492 100.741Z" fill="white"/>
+</g>
+<defs>
+<filter id="filter0_f_1_37" x="0" y="0.214966" width="368.449" height="277.349" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="44" result="effect1_foregroundBlur_1_37"/>
+</filter>
+<clipPath id="bgblur_0_1_37_clip_path" transform="translate(-132.631 -11)"><path d="M178.211 30H283.615C298.294 30 310.195 41.9004 310.195 56.5801V161.983C310.195 176.663 298.294 188.563 283.615 188.563H178.211C163.532 188.563 151.631 176.663 151.631 161.983V56.5801C151.631 41.9004 163.532 30 178.211 30Z"/>
+</clipPath><linearGradient id="paint0_linear_1_37" x1="88.0214" y1="138.897" x2="280.464" y2="138.897" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFDC4A"/>
+<stop offset="0.49" stop-color="#5DFF9A"/>
+<stop offset="1" stop-color="#4DDDFB"/>
+</linearGradient>
+<linearGradient id="paint1_linear_1_37" x1="88.0214" y1="138.897" x2="280.464" y2="138.897" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFDC4A"/>
+<stop offset="0.49" stop-color="#5DFF9A"/>
+<stop offset="1" stop-color="#4DDDFB"/>
+</linearGradient>
+<linearGradient id="paint2_linear_1_37" x1="159.696" y1="180.499" x2="302.13" y2="38.0648" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0.2"/>
+<stop offset="1" stop-color="white" stop-opacity="0.49"/>
+</linearGradient>
+<linearGradient id="paint3_linear_1_37" x1="161.965" y1="41.628" x2="296.181" y2="185.136" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>
+            </div>
+            <div class="icon" id="icon6">
+                <!-- SVG 6 - Blue gradient circle with location pin -->
+                <svg width="171" height="171" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g transform="scale(0.95) translate(8, 8)">
+<g filter="url(#filter0_f_1_5)">
+<path d="M138.081 187.071C165.438 187.071 187.616 164.893 187.616 137.536C187.616 110.178 165.438 88 138.081 88C110.723 88 88.545 110.178 88.545 137.536C88.545 164.893 110.723 187.071 138.081 187.071Z" fill="url(#paint0_linear_1_5)"/>
+</g>
+<path d="M146.052 200.736C173.41 200.736 195.587 178.558 195.587 151.201C195.587 123.843 173.41 101.665 146.052 101.665C118.694 101.665 96.5162 123.843 96.5162 151.201C96.5162 178.558 118.694 200.736 146.052 200.736Z" fill="url(#paint1_linear_1_5)"/>
+<foreignObject x="-16" y="83.665" width="209.09" height="184.038"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(9px);clip-path:url(#bgblur_0_1_5_clip_path);height:100%;width:100%;border:2px solid #0066FF;border-radius:8px;"></div></foreignObject><path data-figma-bg-blur-radius="18" d="M75.1045 108.251C82.529 100.803 94.5608 100.803 101.985 108.251L168.521 174.995C172.084 178.57 174.09 183.42 174.09 188.482V229.629C174.09 240.168 165.579 248.702 155.08 248.702H22.0107C11.5118 248.702 3 240.169 3 229.629V188.482C3.0001 183.42 5.00612 178.57 8.56934 174.995L75.1045 108.251Z" fill="url(#paint2_linear_1_5)" stroke="url(#paint3_linear_1_5)" stroke-width="2"/>
+</g>
+<defs>
+<filter id="filter0_f_1_5" x="0.545044" y="0" width="275.071" height="275.071" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="44" result="effect1_foregroundBlur_1_5"/>
+</filter>
+<clipPath id="bgblur_0_1_5_clip_path" transform="translate(16 -83.665)"><path d="M75.1045 108.251C82.529 100.803 94.5608 100.803 101.985 108.251L168.521 174.995C172.084 178.57 174.09 183.42 174.09 188.482V229.629C174.09 240.168 165.579 248.702 155.08 248.702H22.0107C11.5118 248.702 3 240.169 3 229.629V188.482C3.0001 183.42 5.00612 178.57 8.56934 174.995L75.1045 108.251Z"/>
+</clipPath><linearGradient id="paint0_linear_1_5" x1="88.545" y1="137.536" x2="187.616" y2="137.536" gradientUnits="userSpaceOnUse">
+<stop stop-color="#77C3ED"/>
+<stop offset="1" stop-color="#0060FF"/>
+</linearGradient>
+<linearGradient id="paint1_linear_1_5" x1="96.5162" y1="151.201" x2="195.587" y2="151.201" gradientUnits="userSpaceOnUse">
+<stop stop-color="#77C3ED"/>
+<stop offset="1" stop-color="#0060FF"/>
+</linearGradient>
+<linearGradient id="paint2_linear_1_5" x1="11.7719" y1="241.345" x2="141.505" y2="89.6565" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0.2"/>
+<stop offset="1" stop-color="white" stop-opacity="0.49"/>
+</linearGradient>
+<linearGradient id="paint3_linear_1_5" x1="14.2182" y1="113.308" x2="135.212" y2="264.572" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>
+            </div>
+        </div>
+        <!-- End triangle group -->
+    </div>
+
+    <!-- Computer Animation -->
+    <div class="computer-container" id="computerContainer">
+        <!-- Top Bar -->
+        <div class="computer-top-bar">
+            <div class="computer-dot"></div>
+            <div class="computer-dot"></div>
+            <div class="computer-dot"></div>
+        </div>
+
+        <!-- Screen -->
+        <div class="computer-screen">
+            <div class="computer-content" id="computerContent">
+            </div>
+        </div>
+    </div>
+    </div>
+    <script type="module" src="dist/animation.js"></script>
+</body>
+</html> 
