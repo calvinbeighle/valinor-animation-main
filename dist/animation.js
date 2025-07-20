@@ -348,13 +348,10 @@ class ValinorAnimation {
             this.updateStatus('Transitioning to hexagon formation...');
             // First transition to hexagon formation
             this.transitionToHexagon();
-            // After transition completes, start orbital animation
+            // After transition completes, start web animation without rotation
             setTimeout(() => {
-                this.updateStatus('Starting orbital motion...');
-                this.container.classList.add('rotating');
-                this.startTime = 0;
-                this.animationId = requestAnimationFrame(this.animateOrbit);
-                this.animationState = 'rotating';
+                this.updateStatus('Drawing hex lines...');
+                this.startWebAnimation();
                 this.isAnimating = false;
             }, 1000); // Wait for 1 second for the transition to complete
         }
