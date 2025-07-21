@@ -85,8 +85,18 @@
         .icon img {
             max-width: 100%;
             max-height: 100%;
-            width: auto;
-            height: auto;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Make Salesforce and SAP logos 1.2x bigger than 50% size (60% of original) */
+        .icon img[src*="salesforce-logo.svg"],
+        .icon img[src*="sap-logo.svg"] {
+            width: 60% !important;
+            height: 60% !important;
+            max-width: 60% !important;
+            max-height: 60% !important;
         }
 
         .icon svg {
@@ -159,17 +169,24 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .computer-container.visible {
+            opacity: 1;
         }
 
         .computer-top-bar {
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            width: 100%;
+            right: -4px;
+            width: calc(100% + 4px);
             height: 48px;
             background: rgba(31, 41, 55, 0.7);
             border: 2px solid rgba(255, 255, 255, 0.1);
+            border-bottom: none;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             border-radius: 12px 12px 0 0;
             display: flex;
@@ -189,13 +206,14 @@
 
         .computer-screen {
             position: absolute;
-            bottom: 0;
+            top: 48px;
             left: 0;
             right: 0;
             width: 100%;
             height: 318px;
-            background: rgba(0, 0, 0, 0.8);
+            background: transparent;
             border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top: none;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             border-radius: 0 0 12px 12px;
             display: flex;
@@ -208,12 +226,14 @@
         .computer-content {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            align-items: flex-start;
+            justify-content: flex-start;
             height: 100%;
             width: 100%;
-            padding: 16px;
+            padding: 12px 24px;
             box-sizing: border-box;
+            overflow-y: auto;
+            gap: 4px;
         }
 
         .computer-content.detecting {
@@ -224,8 +244,9 @@
             color: #10b981;
             align-items: center;
             justify-content: center;
-            font-family: 'Courier New', monospace;
+            font-family: 'Sharp Sans', 'Arial', sans-serif;
             font-size: 12px;
+            font-weight: 300;
             overflow: hidden;
         }
 
@@ -261,6 +282,208 @@
             transform: translateY(0);
         }
 
+        .tool-call-bubble {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 4px 0;
+            font-size: 20px;
+            font-weight: 200;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            max-width: 80%;
+            align-self: flex-start;
+        }
+
+        .tool-call-bubble.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tool-call-loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-call-spinner {
+            animation: tool-call-spin 1s linear infinite;
+        }
+
+        .tool-call-spinner svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .tool-call-spinner circle {
+            /* Remove conflicting dash animation, just use rotation */
+        }
+
+        .tool-call-text {
+            flex: 1;
+        }
+
+        .tool-call-dots {
+            display: flex;
+            gap: 2px;
+        }
+
+        .tool-call-dots .dot {
+            animation: tool-call-dot-pulse 1.4s ease-in-out infinite;
+            opacity: 0.3;
+        }
+
+        .tool-call-dots .dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .tool-call-dots .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .tool-call-dots .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes tool-call-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+
+
+        @keyframes tool-call-dot-pulse {
+            0%, 80%, 100% { opacity: 0.3; }
+            40% { opacity: 1; }
+        }
+
+        .question-bubble {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 4px 0;
+            font-size: 20px;
+            font-weight: 200;
+            color: #f59e0b;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            max-width: 80%;
+            align-self: flex-start;
+        }
+
+        .question-bubble.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .code-flow-container {
+            max-width: 500px;
+            background-color: #1d1e22;
+            box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 8px;
+            margin: 6px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            width: 100%;
+            align-self: flex-start;
+            height: 120px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .code-line {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            position: absolute;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            width: calc(100% - 40px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            left: 20px;
+            top: 0;
+            color: white;
+            font-size: 11px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-weight: 200;
+        }
+
+        .code-line.visible {
+            opacity: 1;
+        }
+
+        .typing-cursor {
+            color: #22d3ee;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+
+        .global-typing-cursor {
+            position: absolute;
+            color: #00ff00;
+            font-weight: bold;
+            font-family: 'Sharp Sans', 'Arial', sans-serif;
+            font-size: 13px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .typing-content {
+            color: inherit;
+        }
+
+        .editor-content .color-0,
+        .typing-content .color-0 {
+            color: rgb(86 156 214);
+        }
+
+        .editor-content .color-1,
+        .typing-content .color-1 {
+            color: rgb(182 206 168);
+        }
+
+        .editor-content .color-2,
+        .typing-content .color-2 {
+            color: rgb(156 220 254);
+        }
+
+        .editor-content .color-3,
+        .typing-content .color-3 {
+            color: rgb(207 146 120);
+        }
+
+        .response-bubble {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin: 4px 0;
+            font-size: 18px;
+            color: #10b981;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            max-width: 80%;
+            align-self: flex-end;
+        }
+
+        .response-bubble.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         .computer-loading {
             margin-top: auto;
             display: flex;
@@ -275,8 +498,8 @@
         }
 
         .computer-spinner {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             margin-right: 8px;
             animation: spin 1s linear infinite;
         }
@@ -359,7 +582,8 @@
 
         .computer-progress-text {
             font-size: 12px;
-            font-family: 'Courier New', monospace;
+            font-family: 'Sharp Sans', 'Arial', sans-serif;
+            font-weight: 300;
             color: rgba(255, 255, 255, 0.8);
         }
 
@@ -371,6 +595,11 @@
         @keyframes checkmark-glow {
             0%, 100% { filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.8)); }
             50% { filter: drop-shadow(0 0 30px rgba(34, 211, 238, 1)); }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
         }
     </style>
 </head>
@@ -388,22 +617,22 @@
         <!-- Hexagon group for ferris wheel effect -->
         <div class="hexagon-group" id="hexagonGroup">
             <div class="icon" id="icon1">
-                <img src="logos/128px-Microsoft_Office_OneDrive_(2019–present).svg.png" alt="OneDrive Logo" style="width:100%; height:100%; object-fit: contain;">
+                <img src="dist/logo-svg/onedrive-logo.svg" alt="OneDrive Logo" style="width:100%; height:100%; object-fit: contain;">
             </div>
             <div class="icon" id="icon2">
-                <img src="logos/256px-SAP_2011_logo.svg.png" alt="SAP Logo" style="width:100%; height:100%; object-fit: contain;">
+                <img src="dist/logo-svg/sap-logo.svg" alt="SAP Logo" style="width:100%; height:100%; object-fit: contain;">
             </div>
             <div class="icon" id="icon3">
-                <img src="logos/128px-Microsoft_Office_Outlook_(2018–present).svg.png" alt="Outlook Logo" style="width:100%; height:100%; object-fit: contain;">
+                <img src="dist/logo-svg/outlook-logo.svg" alt="Outlook Logo" style="width:100%; height:100%; object-fit: contain;">
             </div>
             <div class="icon" id="icon4">
-                <img src="logos/256px-Microsoft_Office_Excel_(2019–present).svg.png" alt="Excel Logo" style="width:100%; height:100%; object-fit: contain;">
+                <img src="dist/logo-svg/excel-logo.svg" alt="Excel Logo" style="width:100%; height:100%; object-fit: contain;">
             </div>
             <div class="icon" id="icon5">
-                <img src="logos/256px-Microsoft_Office_PowerPoint_(2019–present).svg.png" alt="PowerPoint Logo" style="width:100%; height:100%; object-fit: contain;">
+                <img src="dist/logo-svg/teams-logo.svg" alt="Teams Logo" style="width:100%; height:100%; object-fit: contain;">
             </div>
             <div class="icon" id="icon6">
-                <img src="logos/Salesforce.com_logo.svg.png" alt="Salesforce Logo" style="width:100%; height:100%; object-fit: contain;">
+                <img src="dist/logo-svg/salesforce-logo.svg" alt="Salesforce Logo" style="width:100%; height:100%; object-fit: contain;">
             </div>
         </div>
         <!-- End triangle group -->

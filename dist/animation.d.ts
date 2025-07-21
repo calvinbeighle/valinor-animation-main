@@ -1,5 +1,4 @@
-type AnimationState = 'hexagon' | 'rotating';
-type ComputerState = 'idle' | 'detecting' | 'running' | 'completed';
+type AnimationState = 'vertical-center' | 'moving-left' | 'moving-right' | 'hexagon' | 'rotating';
 interface IconElement {
     element: HTMLElement;
     id: string;
@@ -18,6 +17,7 @@ declare class ValinorAnimation {
     private centerY;
     private contentBoundaries;
     private ghostIcons;
+    private originalPositions;
     private webCanvas;
     private webCtx;
     private webLines;
@@ -28,18 +28,26 @@ declare class ValinorAnimation {
     private isAuraAnimating;
     private auraAnimationId;
     private auraStartTime;
+    private isComputerAnimating;
+    private computerAnimationId;
+    private computerStartTime;
     private computerContent;
-    private computerState;
-    private computerTimer;
-    private currentIconIndex;
-    private iconsProcessed;
-    private progressBarProgress;
-    private progressBarInterval;
+    private currentCodeLine;
+    private currentPhase;
+    private currentQuestion;
+    private waitingForResponse;
+    private responseDelay;
+    private toolCalls;
+    private codeSnippets;
+    private questions;
+    private responses;
     constructor();
     private initializeIcons;
     private setupEventListeners;
     private initializeWebCanvas;
-    private initializeHexagonFormation;
+    private initializeVerticalFormation;
+    private transitionToLeftPosition;
+    private transitionToRightPosition;
     private transitionToHexagon;
     private getVisualCenterOffset;
     private createGhostIcon;
@@ -56,21 +64,17 @@ declare class ValinorAnimation {
     private generateContinuousWebPath;
     private animateWeb;
     private drawWebLine;
-    private drawGlowingNodes;
     private clearWebCanvas;
-    private startAuraAnimation;
-    private startGentleBlinking;
-    private animateGentleBlink;
     private startComputerAnimation;
-    private runComputerSequence;
-    private fadeOutRunningState;
-    private fadeInCompletedState;
-    private fadeOutCompletedState;
-    private fadeInNextIcon;
-    private setComputerState;
+    private animateComputer;
+    private updatePhaseProgress;
+    private updateComputerDisplay;
+    private createCycleDisplay;
+    private highlightSyntax;
     private updateComputerContent;
+    private startTypingAnimation;
     private delay;
 }
 export { ValinorAnimation };
-export type { AnimationState, ComputerState, IconElement };
+export type { AnimationState, IconElement };
 //# sourceMappingURL=animation.d.ts.map

@@ -5,7 +5,7 @@ import os
 import webbrowser
 from pathlib import Path
 
-PORT = 8000
+PORT = 9000
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):

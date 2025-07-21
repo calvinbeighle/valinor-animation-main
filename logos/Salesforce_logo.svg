@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="salesforceBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1798C1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0D47A1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="url(#salesforceBlue)" stroke="#0D47A1" stroke-width="2"/>
+  
+  <!-- Main cloud shape - fluffy top sections -->
+  <path d="M60 140 Q40 140 40 160 Q40 180 60 180 Q80 180 100 180 Q120 180 140 180 Q160 180 180 180 Q200 180 220 180 Q240 180 240 160 Q240 140 220 140 Q200 140 180 140 Q160 140 140 140 Q120 140 100 140 Q80 140 60 140 Z" 
+        fill="#1798C1"/>
+  
+  <!-- Top fluffy cloud sections -->
+  <path d="M70 130 Q50 130 50 150 Q50 170 70 170 Q90 170 110 170 Q130 170 150 170 Q170 170 190 170 Q210 170 210 150 Q210 130 190 130 Q170 130 150 130 Q130 130 110 130 Q90 130 70 130 Z" 
+        fill="#1798C1"/>
+  
+  <path d="M80 120 Q60 120 60 140 Q60 160 80 160 Q100 160 120 160 Q140 160 160 160 Q180 160 200 160 Q220 160 220 140 Q220 120 200 120 Q180 120 160 120 Q140 120 120 120 Q100 120 80 120 Z" 
+        fill="#1798C1"/>
+  
+  <!-- Bottom smooth rounded edge -->
+  <path d="M60 180 Q80 200 100 200 Q120 200 140 200 Q160 200 180 200 Q200 200 220 200 Q240 200 240 180 Q240 160 220 160 Q200 160 180 160 Q160 160 140 160 Q120 160 100 160 Q80 160 60 160 Q40 160 40 180 Q40 200 60 200 Z" 
+        fill="#1798C1"/>
+  
+  <!-- Salesforce text -->
+  <text x="128" y="170" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">salesforce</text>
+</svg> 
