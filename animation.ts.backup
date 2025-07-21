@@ -55,30 +55,30 @@ class ValinorAnimation {
     // private typingTimer: number | null = null;
     
     private toolCalls: string[] = [
-        'Building integration',
-        'Developing pipeline',
-        'Executing workflow'
+        'Detecting tasks',
+        'Building pipeline',
+        'Optimizing'
     ];
     
     private codeSnippets: string[] = [
-        'const trigger = {',
-        '  key: \'new_item\',',
-        '  noun: \'Item\',',
-        '  display: { label: \'New Item\', description: \'Triggers when a new item is added.\' },',
-        '  operation: {',
-        '    perform: async (z, bundle)}'
+        'function processData(data) {',
+        '    const automation = new TaskAutomation();',
+        '    automation.detectPatterns(data);',
+        '    await automation.buildPipeline();',
+        '    const result = await automation.execute();',
+        '    return result.success;',
+        '}'
     ];
     
     private questions: string[] = [
         'Approve automation?',
         'Enable optimization?',
-        'Deploy solution?'
+        'Deploy changes?'
     ];
     
     private responses: string[] = [
         'Approved - proceeding...',
-        'Enabled - configuring...',
-        'Deployed - monitoring...'
+        'Enabled - configuring...'
     ];
 
     // Computer animation properties - DISABLED
@@ -436,20 +436,13 @@ class ValinorAnimation {
                     this.updateStatus('Moving to hexagon formation...');
                     this.transitionToHexagon();
                     
-                    // After hexagon formation, fade in computer and start web animation
+                    // After hexagon formation, start web animation
                     setTimeout(() => {
-                        const computerContainer = document.getElementById('computerContainer');
-                        if (computerContainer) {
-                            computerContainer.classList.add('visible');
-                        }
-                        
-                        setTimeout(() => {
-                            this.updateStatus('Drawing hex lines...');
-                            this.startWebAnimation();
-                            // this.startAuraAnimation(); // Disabled aura animation
-                            this.isAnimating = false;
-                        }, 1000); // Wait 1 second after computer fades in
-                    }, 1000); // Wait 1 second after hexagon forms
+                        this.updateStatus('Drawing hex lines...');
+                        this.startWebAnimation();
+                        // this.startAuraAnimation(); // Disabled aura animation
+                        this.isAnimating = false;
+                    }, 1000);
                 }, 1000);
             }, 3000); // 3 seconds pause at left position
         }
@@ -515,15 +508,6 @@ class ValinorAnimation {
         // this.currentIconIndex = 0;
         // this.progressBarProgress = 0;
         // this.updateComputerContent();
-        
-        // Hide computer container
-        const computerContainer = document.getElementById('computerContainer');
-        if (computerContainer) {
-            computerContainer.classList.remove('visible');
-        }
-        
-        // Reset computer screen scaling
-        this.resetComputerScreenScaling();
         
         // Reinitialize vertical formation
         this.initializeVerticalFormation();
@@ -645,10 +629,7 @@ class ValinorAnimation {
         // Start computer animation when all center lines are completed
         if (centerLinesCompleted && !this.completedWebLines.has(-1)) {
             this.completedWebLines.add(-1); // Mark that computer animation has started
-            // Add 1 second pause before starting computer animation
-            setTimeout(() => {
-                this.startComputerAnimation();
-            }, 1000);
+            this.startComputerAnimation();
         }
         
 
@@ -699,96 +680,71 @@ class ValinorAnimation {
         this.computerContent.innerHTML = '';
         this.computerContent.className = 'computer-content running';
         this.computerAnimationId = requestAnimationFrame(this.animateComputer);
-        
-        // Add 1 second pause before scaling the computer screen
-        setTimeout(() => {
-            this.scaleComputerScreen();
-        }, 1000);
-    }
-    
-    private scaleComputerScreen(): void {
-        const computerContainer = document.querySelector('.computer-container') as HTMLElement;
-        if (computerContainer) {
-            // Set transform-origin to right edge so it grows to the left
-            computerContainer.style.transformOrigin = 'right center';
-            // Scale to 2.2x with smooth transition
-            computerContainer.style.transition = 'transform 1s ease-in-out';
-            computerContainer.style.transform = 'scale(2.3)';
-        }
-    }
-    
-    private scaleComputerScreenDown(): void {
-        const computerContainer = document.querySelector('.computer-container') as HTMLElement;
-        if (computerContainer) {
-            // Scale back down to original size (1x) with smooth transition
-            computerContainer.style.transition = 'transform 1s ease-in-out';
-            computerContainer.style.transform = 'scale(1)';
-        }
-    }
-    
-    private resetComputerScreenScaling(): void {
-        const computerContainer = document.querySelector('.computer-container') as HTMLElement;
-        if (computerContainer) {
-            // Reset transform and transition
-            computerContainer.style.transform = '';
-            computerContainer.style.transition = '';
-            computerContainer.style.transformOrigin = '';
-        }
     }
 
     private animateComputer = (currentTime: number): void => {
         if (!this.computerStartTime) this.computerStartTime = currentTime;
         
         const elapsed = currentTime - this.computerStartTime;
-        const questionDuration = 1500; // 1.5s for question to show
-        const toolCallDelay = 1000; // 1s delay before code starts
-        const toolCallDuration = 4000; // 4s for tool call (stays visible during code)
-        const codeFlowDuration = 1500; // 1.5s for code to flow (faster)
-        const cycleDuration = questionDuration + toolCallDelay + codeFlowDuration;
+        const questionDuration = 2000; // 2s for question to show
+        const toolCallDuration = 2000; // 2s for tool call
+        const codeFlowDuration = 2000; // 2s for code to flow
+        const cycleDuration = questionDuration + toolCallDuration + codeFlowDuration; // 6s total
         
         // Calculate which cycle we're in (each cycle: question -> tool call -> code)
-        const cycleIndex = Math.floor(elapsed / cycleDuration);
+        // Use modulo to loop through the longest array to ensure all content is shown
+        const maxArrayLength = Math.max(this.questions.length, this.toolCalls.length, this.codeSnippets.length);
+        const cycleIndex = Math.floor(elapsed / cycleDuration) % maxArrayLength;
         const cycleProgress = elapsed % cycleDuration;
         
-        if (cycleIndex >= this.questions.length) {
-            this.isComputerAnimating = false;
-            this.computerAnimationId = null;
-            // Scale back down to original size after animation ends
-            setTimeout(() => {
-                this.scaleComputerScreenDown();
-            }, 1000); // Wait 1 second before scaling down
-            return;
-        }
+        // Debug logging
+        console.log(`Computer Animation - Elapsed: ${elapsed.toFixed(0)}ms, Cycle: ${cycleIndex}, Progress: ${(cycleProgress/cycleDuration*100).toFixed(1)}%, Phase: ${this.currentPhase}`);
         
         // Determine phase within current cycle
         let phase: 'question' | 'tool-call' | 'code' = 'question';
         let phaseProgress = 0;
         
+        // Ensure we always start with question phase at the beginning of each cycle
         if (cycleProgress < questionDuration) {
             phase = 'question';
             phaseProgress = cycleProgress / questionDuration;
-        } else if (cycleProgress < questionDuration + toolCallDelay) {
+        } else if (cycleProgress < questionDuration + toolCallDuration) {
             phase = 'tool-call';
-            phaseProgress = 1; // Tool call is fully visible during delay
-        } else if (cycleProgress < questionDuration + toolCallDelay + codeFlowDuration) {
+            phaseProgress = (cycleProgress - questionDuration) / toolCallDuration;
+        } else if (cycleProgress < questionDuration + toolCallDuration + codeFlowDuration) {
             phase = 'code';
-            phaseProgress = (cycleProgress - questionDuration - toolCallDelay) / codeFlowDuration;
+            phaseProgress = (cycleProgress - questionDuration - toolCallDuration) / codeFlowDuration;
         } else {
-            phase = 'tool-call';
-            phaseProgress = 1; // Tool call remains visible after code
+            // If we somehow exceed the cycle duration, reset to question phase
+            phase = 'question';
+            phaseProgress = 0;
         }
         
         // Update display if phase or cycle changed
         if (phase !== this.currentPhase || cycleIndex !== this.currentCodeLine) {
+            console.log(`Phase/Cycle change: ${this.currentPhase} -> ${phase}, ${this.currentCodeLine} -> ${cycleIndex}`);
             this.currentPhase = phase;
             this.currentCodeLine = cycleIndex;
             this.updateComputerDisplay();
         }
         
-        // Update phase progress for animations
+        // Special handling for cycle transitions - ensure we start with question phase
+        if (cycleIndex !== this.currentCodeLine && phase !== 'question') {
+            console.log(`Forcing question phase at cycle transition: ${cycleIndex}`);
+            this.currentPhase = 'question';
+            this.updateComputerDisplay();
+        }
+        
+        // Always update phase progress
         this.updatePhaseProgress(phase, phaseProgress, cycleIndex);
         
+        // Continue looping indefinitely
         this.computerAnimationId = requestAnimationFrame(this.animateComputer);
+        
+        // Debug: Log every 60 frames (about once per second)
+        if (Math.floor(elapsed / 16) % 60 === 0) {
+            console.log(`Animation frame continuing - Cycle: ${cycleIndex}, Phase: ${phase}, Animation ID: ${this.computerAnimationId}`);
+        }
     };
     
     private updatePhaseProgress(phase: 'question' | 'tool-call' | 'code', progress: number, cycleIndex: number): void {
@@ -796,16 +752,42 @@ class ValinorAnimation {
         const toolCallElement = this.computerContent.querySelector('.tool-call-bubble') as HTMLElement;
         const codeContainer = this.computerContent.querySelector('.code-flow-container') as HTMLElement;
         
+        // Debug logging for phase progress
+        if (progress < 0.1 || progress > 0.9) {
+            console.log(`Phase Progress - Phase: ${phase}, Progress: ${(progress*100).toFixed(1)}%, Cycle: ${cycleIndex}`);
+        }
+        
+        // Clear all elements first
+        if (questionElement) questionElement.style.opacity = '0';
+        if (toolCallElement) toolCallElement.style.opacity = '0';
+        if (codeContainer) {
+            const codeLines = codeContainer.querySelectorAll('.code-line');
+            codeLines.forEach((line) => {
+                const lineElement = line as HTMLElement;
+                lineElement.style.opacity = '0';
+                lineElement.style.position = 'static';
+                lineElement.style.top = '';
+                lineElement.style.left = '';
+                lineElement.style.right = '';
+                lineElement.style.overflow = '';
+                
+                // Clear the typing content
+                const typingContent = lineElement.querySelector('.typing-content') as HTMLElement;
+                if (typingContent) {
+                    typingContent.innerHTML = '';
+                }
+            });
+        }
+        
         if (phase === 'question') {
             if (questionElement) {
-                questionElement.style.opacity = progress < 0.8 ? '1' : (1 - (progress - 0.8) * 5).toString();
+                questionElement.style.opacity = '1';
             }
         } else if (phase === 'tool-call') {
             if (toolCallElement) {
-                toolCallElement.style.opacity = '1'; // Keep tool call visible
+                toolCallElement.style.opacity = '1';
             }
         } else if (phase === 'code') {
-            // Keep tool call visible during code execution
             if (toolCallElement) {
                 toolCallElement.style.opacity = '1';
             }
@@ -814,34 +796,12 @@ class ValinorAnimation {
                 const codeLines = codeContainer.querySelectorAll('.code-line');
                 const totalLines = this.codeSnippets.length;
                 const linesToShow = Math.floor(progress * totalLines);
-                const containerHeight = codeContainer.clientHeight;
-                const lineHeight = 20; // 20px spacing between lines
                 
                 // Show all lines that should be visible with complete content
                 codeLines.forEach((line, index) => {
                     const lineElement = line as HTMLElement;
                     if (index < linesToShow) {
-                        lineElement.classList.add('visible');
-                        
-                        // Calculate the final position (top to bottom stacking)
-                        const finalTopPosition = index * lineHeight;
-                        
-                        // Calculate animation progress for this specific line
-                        const lineProgress = Math.max(0, Math.min(1, (progress * totalLines - index) / 1));
-                        
-                        // Start from bottom of container and animate to final position
-                        const startPosition = containerHeight;
-                        const endPosition = finalTopPosition;
-                        const currentPosition = startPosition + (endPosition - startPosition) * lineProgress;
-                        
-                        // Ensure line stays within container bounds
-                        const clampedTopPosition = Math.max(0, Math.min(currentPosition, containerHeight - lineHeight));
-                        
-                        lineElement.style.position = 'absolute';
-                        lineElement.style.top = `${clampedTopPosition + 10}px`;
-                        lineElement.style.left = '10px';
-                        lineElement.style.right = '10px';
-                        lineElement.style.overflow = 'hidden';
+                        lineElement.style.opacity = '1';
                         
                         // Fill the line with complete content immediately
                         const typingContent = lineElement.querySelector('.typing-content') as HTMLElement;
@@ -849,13 +809,8 @@ class ValinorAnimation {
                             // Apply syntax highlighting to the complete line
                             typingContent.innerHTML = this.highlightSyntax(this.codeSnippets[index]);
                         }
-                    } else {
-                        lineElement.classList.remove('visible');
                     }
                 });
-                
-                // Keep scroll at bottom to show latest lines
-                codeContainer.scrollTop = codeContainer.scrollHeight;
             }
         }
     }
@@ -893,7 +848,7 @@ class ValinorAnimation {
             spinner.className = 'tool-call-spinner';
             spinner.innerHTML = `
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M 6 1 A 5 5 0 0 1 11 6 A 5 5 0 0 1 6 11 A 5 5 0 0 1 1 6 A 5 5 0 0 1 6 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" stroke-dasharray="25 8" stroke-dashoffset="0"/>
+                    <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="20 8" stroke-dashoffset="0"/>
                 </svg>
             `;
             
@@ -932,8 +887,50 @@ class ValinorAnimation {
     }
 
     private highlightSyntax(code: string): string {
-        // Return code without any syntax highlighting or word replacements
-        return code;
+        // Define syntax highlighting rules using the new color classes
+        const rules = [
+            // Comments (highest priority to avoid conflicts)
+            { pattern: /(\/\/.*$)/gm, colorClass: 'color-3' }, // single line comments
+            { pattern: /(\/\*[\s\S]*?\*\/)/g, colorClass: 'color-3' }, // multi-line comments
+            
+            // Strings first (to avoid conflicts with other patterns)
+            { pattern: /"([^"]*)"/g, colorClass: 'color-1' }, // strings
+            { pattern: /'([^']*)'/g, colorClass: 'color-1' }, // strings
+            { pattern: /`([^`]*)`/g, colorClass: 'color-1' }, // template literals
+            
+            // Keywords (expanded list) - before numbers to avoid conflicts
+            { pattern: /\b(const|let|var|function|class|return|await|async|if|else|for|while|try|catch|finally|switch|case|default|break|continue|throw|import|export|from|as|interface|type|enum|namespace|module|public|private|protected|static|abstract|extends|implements|super|this|new|delete|typeof|instanceof|in|of|void|any|unknown|never|undefined|null|true|false)\b/g, colorClass: 'color-0' }, // keywords
+            
+            // Numbers (standalone numbers only)
+            { pattern: /\b(\d+)\b/g, colorClass: 'color-2' }, // numbers
+            
+            // Operators and symbols
+            { pattern: /([+\-*/%=<>!&|^~?:]+)/g, colorClass: 'color-3' }, // operators
+            { pattern: /([{}[\]();,])/g, colorClass: 'color-3' }, // brackets and punctuation
+            
+            // Class names (capitalized words)
+            { pattern: /\b([A-Z][a-zA-Z0-9]*)\b/g, colorClass: 'color-2' }, // class names
+            
+            // Method calls (after class names to avoid conflicts)
+            { pattern: /\.([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/g, colorClass: 'color-1' }, // method calls
+            
+            // Function calls (after method calls)
+            { pattern: /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/g, colorClass: 'color-1' }, // function calls
+            
+            // Properties (after method calls)
+            { pattern: /\.([a-zA-Z_$][a-zA-Z0-9_$]*)/g, colorClass: 'color-0' }, // properties
+        ];
+
+        let highlightedCode = code;
+
+        // Apply each rule efficiently
+        rules.forEach(rule => {
+            highlightedCode = highlightedCode.replace(rule.pattern, (match, ...args) => {
+                return `<span class="${rule.colorClass}">${match}</span>`;
+            });
+        });
+
+        return highlightedCode;
     }
 
     // Hexagon Corner Flash Animation Methods

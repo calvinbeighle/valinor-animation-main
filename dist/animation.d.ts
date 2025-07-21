@@ -66,6 +66,9 @@ declare class ValinorAnimation {
     private drawWebLine;
     private clearWebCanvas;
     private startComputerAnimation;
+    private scaleComputerScreen;
+    private scaleComputerScreenDown;
+    private resetComputerScreenScaling;
     private animateComputer;
     private updatePhaseProgress;
     private updateComputerDisplay;

@@ -161,6 +161,10 @@ class ValinorAnimation {
             if (cycleIndex >= this.questions.length) {
                 this.isComputerAnimating = false;
                 this.computerAnimationId = null;
+                // Scale back down to original size after animation ends
+                setTimeout(() => {
+                    this.scaleComputerScreenDown();
+                }, 1000); // Wait 1 second before scaling down
                 return;
             }
             // Determine phase within current cycle
@@ -510,6 +514,8 @@ class ValinorAnimation {
         if (computerContainer) {
             computerContainer.classList.remove('visible');
         }
+        // Reset computer screen scaling
+        this.resetComputerScreenScaling();
         // Reinitialize vertical formation
         this.initializeVerticalFormation();
         setTimeout(() => {
@@ -600,6 +606,37 @@ class ValinorAnimation {
         this.computerContent.innerHTML = '';
         this.computerContent.className = 'computer-content running';
         this.computerAnimationId = requestAnimationFrame(this.animateComputer);
+        // Add 1 second pause before scaling the computer screen
+        setTimeout(() => {
+            this.scaleComputerScreen();
+        }, 1000);
+    }
+    scaleComputerScreen() {
+        const computerContainer = document.querySelector('.computer-container');
+        if (computerContainer) {
+            // Set transform-origin to right edge so it grows to the left
+            computerContainer.style.transformOrigin = 'right center';
+            // Scale to 2.2x with smooth transition
+            computerContainer.style.transition = 'transform 1s ease-in-out';
+            computerContainer.style.transform = 'scale(2.3)';
+        }
+    }
+    scaleComputerScreenDown() {
+        const computerContainer = document.querySelector('.computer-container');
+        if (computerContainer) {
+            // Scale back down to original size (1x) with smooth transition
+            computerContainer.style.transition = 'transform 1s ease-in-out';
+            computerContainer.style.transform = 'scale(1)';
+        }
+    }
+    resetComputerScreenScaling() {
+        const computerContainer = document.querySelector('.computer-container');
+        if (computerContainer) {
+            // Reset transform and transition
+            computerContainer.style.transform = '';
+            computerContainer.style.transition = '';
+            computerContainer.style.transformOrigin = '';
+        }
     }
     updatePhaseProgress(phase, progress, cycleIndex) {
         const questionElement = this.computerContent.querySelector('.question-bubble');
