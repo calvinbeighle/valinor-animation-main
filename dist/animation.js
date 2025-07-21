@@ -13,7 +13,7 @@ class ValinorAnimation {
         this.animationId = null;
         this.startTime = 0;
         this.radius = 130; // Distance from center to hexagon vertices
-        this.centerX = 500; // Center X for the screen (positioned between computer and left formation)
+        this.centerX = 485; // Center X for the screen (positioned between computer and left formation) - moved 15px left total
         this.centerY = 300; // Center Y for the screen
         this.contentBoundaries = [];
         this.ghostIcons = []; // Store ghost elements
@@ -304,7 +304,7 @@ class ValinorAnimation {
             // Position the icon at the exact same location
             icon.element.style.transform = `translate(${finalX}px, ${finalY}px)`;
             // Create ghost at the left position
-            const leftX = this.centerX - 400 + (column * 150); // Same as left position
+            const leftX = this.centerX - 450 + (column * 150); // 50px further left than left position
             const leftY = this.centerY - 150 + (row * 150);
             this.createGhostIcon(icon.element, leftX - visualCenterOffset.x, leftY - visualCenterOffset.y, index);
         });
