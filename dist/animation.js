@@ -106,6 +106,7 @@ class ValinorAnimation {
             this.webCtx.clearRect(0, 0, this.webCanvas.width, this.webCanvas.height);
             // Track when center lines are completed for glow start
             let centerLinesCompleted = false;
+            let allCenterLinesComplete = true;
             // Update line progress - draw perimeter first, then all center lines simultaneously
             this.webLines.forEach((line, index) => {
                 if (index < 6) {
@@ -122,21 +123,37 @@ class ValinorAnimation {
                     const centerDuration = 0.4; // 40% of time for center lines (faster)
                     const lineProgress = Math.max(0, Math.min(1, (progress - centerStart) / centerDuration));
                     line.progress = lineProgress;
-                    // Check if all center lines are completed
-                    if (line.progress >= 1) {
-                        centerLinesCompleted = true;
+                    // Check if this center line is not complete
+                    if (line.progress < 1) {
+                        allCenterLinesComplete = false;
                     }
                 }
                 if (line.progress > 0) {
                     this.drawWebLine(line, line.progress);
                 }
             });
+            // Set centerLinesCompleted only when ALL center lines are complete
+            centerLinesCompleted = allCenterLinesComplete;
             // Start computer animation when all center lines are completed
             if (centerLinesCompleted && !this.completedWebLines.has(-1)) {
                 this.completedWebLines.add(-1); // Mark that computer animation has started
                 // Add 1 second pause before starting computer animation
                 setTimeout(() => {
-                    this.startComputerAnimation();
+                    // Fade in computer first
+                    const computerContainer = document.getElementById('computerContainer');
+                    if (computerContainer) {
+                        computerContainer.classList.add('visible');
+                    }
+                    // Show first question immediately when computer fades in
+                    this.showFirstQuestion();
+                    // Scale up computer after question appears
+                    setTimeout(() => {
+                        this.scaleComputerScreen();
+                        // Start computer animation after scaling
+                        setTimeout(() => {
+                            this.startComputerAnimation();
+                        }, 1000); // Wait 1 second after scaling
+                    }, 1000); // Wait 1 second after question appears
                 }, 1000);
             }
             if (progress >= 1) {
@@ -275,8 +292,8 @@ class ValinorAnimation {
             // Calculate 2-column, 3-row layout positions
             const column = index % 2;
             const row = Math.floor(index / 2);
-            // LEFT POSITION: Far to the left of the screen
-            const leftX = this.centerX - 400 + (column * 150); // 400px left of center, 150px spacing
+            // LEFT POSITION: Far to the left of the screen (same as ghost position)
+            const leftX = this.centerX - 450 + (column * 150); // 450px left of center, 150px spacing (same as ghost position)
             const leftY = this.centerY - 150 + (row * 150); // Same Y as start position
             // Get the visual center offset for this specific icon
             const visualCenterOffset = this.getVisualCenterOffset(index);
@@ -440,18 +457,12 @@ class ValinorAnimation {
                 setTimeout(() => {
                     this.updateStatus('Moving to hexagon formation...');
                     this.transitionToHexagon();
-                    // After hexagon formation, fade in computer and start web animation
+                    // After hexagon formation, start web animation first
                     setTimeout(() => {
-                        const computerContainer = document.getElementById('computerContainer');
-                        if (computerContainer) {
-                            computerContainer.classList.add('visible');
-                        }
-                        setTimeout(() => {
-                            this.updateStatus('Drawing hex lines...');
-                            this.startWebAnimation();
-                            // this.startAuraAnimation(); // Disabled aura animation
-                            this.isAnimating = false;
-                        }, 1000); // Wait 1 second after computer fades in
+                        this.updateStatus('Drawing hex lines...');
+                        this.startWebAnimation();
+                        // this.startAuraAnimation(); // Disabled aura animation
+                        this.isAnimating = false;
                     }, 1000); // Wait 1 second after hexagon forms
                 }, 1000);
             }, 3000); // 3 seconds pause at left position
@@ -599,6 +610,18 @@ class ValinorAnimation {
     clearWebCanvas() {
         this.webCtx.clearRect(0, 0, this.webCanvas.width, this.webCanvas.height);
     }
+    showFirstQuestion() {
+        // Clear any existing content
+        this.computerContent.innerHTML = '';
+        this.computerContent.className = 'computer-content';
+        // Show the first question
+        if (this.questions.length > 0) {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-bubble';
+            questionDiv.textContent = this.questions[0];
+            this.computerContent.appendChild(questionDiv);
+        }
+    }
     startComputerAnimation() {
         this.isComputerAnimating = true;
         this.computerStartTime = performance.now();
@@ -606,27 +629,76 @@ class ValinorAnimation {
         this.computerContent.innerHTML = '';
         this.computerContent.className = 'computer-content running';
         this.computerAnimationId = requestAnimationFrame(this.animateComputer);
-        // Add 1 second pause before scaling the computer screen
-        setTimeout(() => {
-            this.scaleComputerScreen();
-        }, 1000);
     }
     scaleComputerScreen() {
         const computerContainer = document.querySelector('.computer-container');
         if (computerContainer) {
             // Set transform-origin to right edge so it grows to the left
             computerContainer.style.transformOrigin = 'right center';
-            // Scale to 2.2x with smooth transition
-            computerContainer.style.transition = 'transform 1s ease-in-out';
-            computerContainer.style.transform = 'scale(2.3)';
+            // Calculate scaling to ensure 0.5 inch margins above and below
+            const viewportHeight = window.innerHeight;
+            const computerHeight = 366; // Original computer height in pixels
+            const marginInches = 0.5;
+            const pixelsPerInch = 96; // Standard assumption
+            const marginPixels = marginInches * pixelsPerInch;
+            // Get the computer container's current position to account for actual centering
+            const computerRect = computerContainer.getBoundingClientRect();
+            const computerCenterY = computerRect.top + (computerRect.height / 2);
+            const viewportCenterY = viewportHeight / 2;
+            // Calculate available space based on actual position
+            const topSpace = computerCenterY - marginPixels;
+            const bottomSpace = viewportHeight - computerCenterY - marginPixels;
+            const availableHeight = Math.min(topSpace, bottomSpace) * 2; // Use the smaller space and double it
+            const maxScaleY = availableHeight / computerHeight;
+            // Scale width to 2.43x, but constrain height to fit within margins
+            const scaleX = 2.43;
+            const scaleY = Math.min(2.43, maxScaleY);
+            computerContainer.style.transition = 'transform 2s ease-in-out';
+            computerContainer.style.transform = `scale(${scaleX}, ${scaleY})`;
+            // Apply compensating scale to text and circles to counteract horizontal stretching
+            const compensatingScale = scaleY / scaleX; // This will be < 1 when scaleY < scaleX
+            // Apply compensating scale to the computer content (text)
+            const computerContent = document.querySelector('.computer-content');
+            if (computerContent) {
+                computerContent.style.transform = `scaleX(${compensatingScale})`;
+                computerContent.style.transformOrigin = 'left center';
+            }
+            // Apply compensating scale to the code flow container
+            const codeFlowContainer = document.querySelector('.code-flow-container');
+            if (codeFlowContainer) {
+                codeFlowContainer.style.transform = `scaleX(${compensatingScale})`;
+                codeFlowContainer.style.transformOrigin = 'left center';
+            }
+            // Apply compensating scale to the top bar dots (circles)
+            const computerDots = document.querySelectorAll('.computer-dot');
+            computerDots.forEach(dot => {
+                dot.style.transform = `scaleX(${compensatingScale})`;
+                dot.style.transformOrigin = 'center';
+            });
         }
     }
     scaleComputerScreenDown() {
         const computerContainer = document.querySelector('.computer-container');
         if (computerContainer) {
             // Scale back down to original size (1x) with smooth transition
-            computerContainer.style.transition = 'transform 1s ease-in-out';
+            computerContainer.style.transition = 'transform 2s ease-in-out';
             computerContainer.style.transform = 'scale(1)';
+            // Reset compensating scales for text and circles
+            const computerContent = document.querySelector('.computer-content');
+            if (computerContent) {
+                computerContent.style.transform = '';
+                computerContent.style.transformOrigin = '';
+            }
+            const codeFlowContainer = document.querySelector('.code-flow-container');
+            if (codeFlowContainer) {
+                codeFlowContainer.style.transform = '';
+                codeFlowContainer.style.transformOrigin = '';
+            }
+            const computerDots = document.querySelectorAll('.computer-dot');
+            computerDots.forEach(dot => {
+                dot.style.transform = '';
+                dot.style.transformOrigin = '';
+            });
         }
     }
     resetComputerScreenScaling() {
@@ -637,6 +709,22 @@ class ValinorAnimation {
             computerContainer.style.transition = '';
             computerContainer.style.transformOrigin = '';
         }
+        // Reset compensating scales for text and circles
+        const computerContent = document.querySelector('.computer-content');
+        if (computerContent) {
+            computerContent.style.transform = '';
+            computerContent.style.transformOrigin = '';
+        }
+        const codeFlowContainer = document.querySelector('.code-flow-container');
+        if (codeFlowContainer) {
+            codeFlowContainer.style.transform = '';
+            codeFlowContainer.style.transformOrigin = '';
+        }
+        const computerDots = document.querySelectorAll('.computer-dot');
+        computerDots.forEach(dot => {
+            dot.style.transform = '';
+            dot.style.transformOrigin = '';
+        });
     }
     updatePhaseProgress(phase, progress, cycleIndex) {
         const questionElement = this.computerContent.querySelector('.question-bubble');
